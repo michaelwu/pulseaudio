@@ -8,8 +8,6 @@ Makefile
 Makefile.in
 proximity-helper
 client.conf
-daemon.conf
-default.pa
 echo-cancel-test
 esdcompat
 gconf-helper

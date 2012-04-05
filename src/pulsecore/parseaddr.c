@@ -23,6 +23,7 @@
 #include <config.h>
 #endif
 
+#include <netinet/in.h>
 #include <string.h>
 #include <stdlib.h>
 

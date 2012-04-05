@@ -33,6 +33,7 @@
 #include <sys/stat.h>
 
 #ifdef HAVE_SYS_UN_H
+#include <sys/socket.h>
 #include <sys/un.h>
 #ifndef SUN_LEN
 #define SUN_LEN(ptr) \

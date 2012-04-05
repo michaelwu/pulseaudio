@@ -22,7 +22,7 @@
   USA.
 ***/
 
-#include <ltdl.h>
+#include "ltdl.h"
 
 typedef void (*pa_void_func_t)(void);
 

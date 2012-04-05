@@ -23,7 +23,7 @@
 #include <config.h>
 #endif
 
-#include <ltdl.h>
+#include "ltdl.h"
 
 #include <pulse/xmalloc.h>
 

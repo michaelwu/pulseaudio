@@ -34,7 +34,7 @@
 
 #include <string.h>
 
-#include <ltdl.h>
+#include "pulsecore/ltdl.h"
 
 #include <pulsecore/i18n.h>
 #include <pulsecore/macro.h>

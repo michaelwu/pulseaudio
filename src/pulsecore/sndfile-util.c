@@ -390,6 +390,7 @@ pa_sndfile_readf_t pa_sndfile_readf_function(const pa_sample_spec *ss) {
         default:
             pa_assert_not_reached();
     }
+return NULL;
 }
 
 pa_sndfile_writef_t pa_sndfile_writef_function(const pa_sample_spec *ss) {
@@ -413,6 +414,7 @@ pa_sndfile_writef_t pa_sndfile_writef_function(const pa_sample_spec *ss) {
         default:
             pa_assert_not_reached();
     }
+return NULL;
 }
 
 int pa_sndfile_format_from_string(const char *name) {

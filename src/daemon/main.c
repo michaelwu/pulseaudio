@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <stddef.h>
-#include <ltdl.h>
+#include "pulsecore/ltdl.h"
 #include <limits.h>
 #include <unistd.h>
 #include <locale.h>
@@ -535,8 +535,8 @@ int main(int argc, char *argv[]) {
     pa_ltdl_init();
     ltdl_init = TRUE;
 
-    if (conf->dl_search_path)
-        lt_dlsetsearchpath(conf->dl_search_path);
+//    if (conf->dl_search_path)
+//        lt_dlsetsearchpath(conf->dl_search_path);
 
 #ifdef OS_IS_WIN32
     {

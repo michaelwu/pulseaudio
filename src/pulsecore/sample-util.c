@@ -93,6 +93,7 @@ static uint8_t silence_byte(pa_sample_format_t format) {
         default:
             pa_assert_not_reached();
     }
+return 0;
 }
 
 void* pa_silence_memory(void *p, size_t length, const pa_sample_spec *spec) {

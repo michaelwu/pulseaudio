@@ -23,7 +23,7 @@
 ***/
 
 #include <inttypes.h>
-#include <ltdl.h>
+#include "ltdl.h"
 
 typedef struct pa_module pa_module;
 

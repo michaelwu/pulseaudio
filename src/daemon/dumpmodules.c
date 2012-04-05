@@ -26,7 +26,7 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <ltdl.h>
+#include "../pulsecore/ltdl.h"
 
 #include <pulse/util.h>
 
@@ -90,7 +90,8 @@ static void show_info(const char *name, const char *path, void (*info)(const cha
 }
 
 #ifndef OS_IS_WIN32
-extern const lt_dlsymlist lt_preloaded_symbols[];
+//extern const lt_dlsymlist lt_preloaded_symbols[];
+const lt_dlsymlist *lt_preloaded_symbols;
 #endif
 
 static int is_preloaded(const char *name) {
@@ -155,6 +156,6 @@ void pa_dump_modules(pa_daemon_conf *c, int argc, char * const argv[]) {
             show_info(buf, NULL, c->log_level >= PA_LOG_INFO ? long_info : short_info);
         }
 
-        lt_dlforeachfile(NULL, callback, c);
+        //lt_dlforeachfile(NULL, callback, c);
     }
 }
