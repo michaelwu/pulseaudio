@@ -37,6 +37,7 @@
 #endif
 
 #include "alsa-util.h"
+#include "alsa-ucm.h"
 #include "alsa-sink.h"
 #include "alsa-source.h"
 #include "module-alsa-card-symdef.h"
@@ -69,6 +70,7 @@ PA_MODULE_USAGE(
         "deferred_volume=<Synchronize software and hardware volume changes to avoid momentary jumps?> "
         "profile_set=<profile set configuration file> "
         "paths_dir=<directory containing the path configuration files> "
+        "use_ucm=<load use case manager> "
 );
 
 static const char* const valid_modargs[] = {
@@ -95,6 +97,7 @@ static const char* const valid_modargs[] = {
     "deferred_volume",
     "profile_set",
     "paths_dir",
+    "use_ucm",
     NULL
 };
 
@@ -117,6 +120,22 @@ struct userdata {
     pa_modargs *modargs;
 
     pa_alsa_profile_set *profile_set;
+
+    /* ucm stuffs */
+    pa_bool_t use_ucm;
+    pa_alsa_ucm_config ucm;
+
+    /* hooks for modifier action */
+    pa_hook_slot
+        *sink_input_put_hook_slot,
+        *source_output_put_hook_slot,
+        *sink_input_unlink_hook_slot,
+        *source_output_unlink_hook_slot,
+
+        *sink_input_move_start_hook_slot,
+        *source_output_move_start_hook_slot,
+        *sink_input_move_finish_hook_slot,
+        *source_output_move_finish_hook_slot;
 };
 
 struct profile_data {
@@ -126,6 +145,7 @@ struct profile_data {
 static void add_profiles(struct userdata *u, pa_hashmap *h, pa_hashmap *ports) {
     pa_alsa_profile *ap;
     void *state;
+    int *dev_indices;
 
     pa_assert(u);
     pa_assert(h);
@@ -143,7 +163,13 @@ static void add_profiles(struct userdata *u, pa_hashmap *h, pa_hashmap *ports) {
             cp->n_sinks = pa_idxset_size(ap->output_mappings);
 
             PA_IDXSET_FOREACH(m, ap->output_mappings, idx) {
-                pa_alsa_path_set_add_ports(m->output_path_set, cp, ports, NULL, u->core);
+                if (u->use_ucm) {
+                    dev_indices = pa_xnew(int, m->ucm_context.ucm_devices_num);
+                    ucm_add_ports_combination(NULL, &m->ucm_context, 1, dev_indices, 0, 0, ports, cp, u->core);
+                    pa_xfree(dev_indices);
+                }
+                else
+                    pa_alsa_path_set_add_ports(m->output_path_set, cp, ports, NULL, u->core);
                 if (m->channel_map.channels > cp->max_sink_channels)
                     cp->max_sink_channels = m->channel_map.channels;
             }
@@ -153,7 +179,13 @@ static void add_profiles(struct userdata *u, pa_hashmap *h, pa_hashmap *ports) {
             cp->n_sources = pa_idxset_size(ap->input_mappings);
 
             PA_IDXSET_FOREACH(m, ap->input_mappings, idx) {
-                pa_alsa_path_set_add_ports(m->input_path_set, cp, ports, NULL, u->core);
+                if (u->use_ucm) {
+                    dev_indices = pa_xnew(int, m->ucm_context.ucm_devices_num);
+                    ucm_add_ports_combination(NULL, &m->ucm_context, 0, dev_indices, 0, 0, ports, cp, u->core);
+                    pa_xfree(dev_indices);
+                }
+                else
+                    pa_alsa_path_set_add_ports(m->input_path_set, cp, ports, NULL, u->core);
                 if (m->channel_map.channels > cp->max_source_channels)
                     cp->max_source_channels = m->channel_map.channels;
             }
@@ -222,6 +254,13 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
             am->source = NULL;
         }
 
+    /* if UCM is available for this card then update the verb */
+    if (u->use_ucm) {
+        if (ucm_set_profile(&u->ucm, nd->profile ? nd->profile->name : NULL,
+                    od->profile ? od->profile->name : NULL) < 0)
+            return -1;
+    }
+
     if (nd->profile && nd->profile->output_mappings)
         PA_IDXSET_FOREACH(am, nd->profile->output_mappings, idx) {
 
@@ -259,10 +298,19 @@ static void init_profile(struct userdata *u) {
     uint32_t idx;
     pa_alsa_mapping *am;
     struct profile_data *d;
+    struct pa_alsa_ucm_config *ucm = &u->ucm;
 
     pa_assert(u);
 
     d = PA_CARD_PROFILE_DATA(u->card->active_profile);
+
+    if (d->profile && u->use_ucm) {
+        /* Set initial verb */
+        if (ucm_set_profile(ucm, d->profile->name, NULL) < 0) {
+            pa_log("failed to set ucm profile %s", d->profile->name);
+            return;
+        }
+    }
 
     if (d->profile && d->profile->output_mappings)
         PA_IDXSET_FOREACH(am, d->profile->output_mappings, idx)
@@ -278,14 +326,22 @@ static void report_port_state(pa_device_port *p, struct userdata *u)
     void *state;
     pa_alsa_jack *jack;
     pa_port_available_t pa = PA_PORT_AVAILABLE_UNKNOWN;
+    pa_device_port *port;
 
     PA_HASHMAP_FOREACH(jack, u->jacks, state) {
         pa_port_available_t cpa;
 
-        if (!jack->path)
-            continue;
+        if (u->use_ucm) {
+            port = pa_hashmap_get(u->card->ports, jack->name);
+        }
+        else {
+            if (jack->path)
+                port = jack->path->port;
+            else
+                continue;
+        }
 
-        if (p != jack->path->port)
+        if (p != port)
             continue;
 
         cpa = jack->plugged_in ? jack->state_plugged : jack->state_unplugged;
@@ -311,6 +367,7 @@ static int report_jack_state(snd_hctl_elem_t *elem, unsigned int mask)
     pa_bool_t plugged_in;
     void *state;
     pa_alsa_jack *jack;
+    pa_device_port *port;
 
     pa_assert(u);
 
@@ -330,8 +387,16 @@ static int report_jack_state(snd_hctl_elem_t *elem, unsigned int mask)
     PA_HASHMAP_FOREACH(jack, u->jacks, state)
         if (jack->hctl_elem == elem) {
             jack->plugged_in = plugged_in;
-            pa_assert(jack->path && jack->path->port);
-            report_port_state(jack->path->port, u);
+            if (u->use_ucm) {
+                pa_assert(u->card->ports);
+                port = pa_hashmap_get(u->card->ports, jack->name);
+                pa_assert(port);
+            }
+            else {
+                pa_assert(jack->path && jack->path->port);
+                port = jack->path->port;
+            }
+            report_port_state(port, u);
         }
     return 0;
 }
@@ -343,18 +408,25 @@ static void init_jacks(struct userdata *u) {
 
     u->jacks = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
-    /* See if we have any jacks */
-    if (u->profile_set->output_paths)
-        PA_HASHMAP_FOREACH(path, u->profile_set->output_paths, state)
-            PA_LLIST_FOREACH(jack, path->jacks)
+    if (u->use_ucm) {
+        PA_LLIST_FOREACH(jack, u->ucm.jacks)
+            if (jack->has_control)
+                pa_hashmap_put(u->jacks, jack, jack);
+    }
+    else {
+        /* See if we have any jacks */
+        if (u->profile_set->output_paths)
+            PA_HASHMAP_FOREACH(path, u->profile_set->output_paths, state)
+                PA_LLIST_FOREACH(jack, path->jacks)
                 if (jack->has_control)
                     pa_hashmap_put(u->jacks, jack, jack);
 
-    if (u->profile_set->input_paths)
-        PA_HASHMAP_FOREACH(path, u->profile_set->input_paths, state)
-            PA_LLIST_FOREACH(jack, path->jacks)
+        if (u->profile_set->input_paths)
+            PA_HASHMAP_FOREACH(path, u->profile_set->input_paths, state)
+                PA_LLIST_FOREACH(jack, path->jacks)
                 if (jack->has_control)
                     pa_hashmap_put(u->jacks, jack, jack);
+    }
 
     pa_log_debug("Found %d jacks.", pa_hashmap_size(u->jacks));
 
@@ -408,6 +480,171 @@ static void set_card_name(pa_card_new_data *data, pa_modargs *ma, const char *de
     pa_xfree(t);
 }
 
+static int card_query_ucm_profiles(struct userdata *u, int card_index)
+{
+    char *card_name;
+    const char **verb_list;
+    int num_verbs, i, err=0;
+
+    /* is UCM available for this card ? */
+    if(snd_card_get_name(card_index, &card_name) < 0)
+    {
+        pa_log("Card can't get card_name from card_index %d", card_index);
+        err = -1;
+        goto name_fail;
+    }
+    err = snd_use_case_mgr_open(&u->ucm.ucm_mgr, card_name);
+    if (err < 0) {
+        pa_log("UCM not available for card %s", card_name);
+        err = -1;
+        goto ucm_mgr_fail;
+    }
+
+    pa_log("UCM available for card %s", card_name);
+
+    /* get a list of all UCM verbs (profiles) for this card */
+    num_verbs = snd_use_case_verb_list(u->ucm.ucm_mgr, &verb_list);
+    if (num_verbs <= 0) {
+        pa_log("UCM verb list not found for %s", card_name);
+        err = -1;
+        goto ucm_verb_fail;
+    }
+
+    /* get the properties of each UCM verb */
+    for (i = 0; i < num_verbs; i += 2) {
+        struct pa_alsa_ucm_verb *verb;
+
+        /* Get devices and modifiers for each verb */
+        err = ucm_get_verb(u->ucm.ucm_mgr, verb_list[i], verb_list[i+1], &verb);
+        if (err < 0) {
+            pa_log("Failed to get the verb %s", verb_list[i]);
+            continue;
+        }
+        PA_LLIST_PREPEND(pa_alsa_ucm_verb, u->ucm.verbs, verb);
+    }
+
+    if(u->ucm.verbs)
+    {
+        /* create the profile set for the UCM card */
+        u->profile_set = ucm_add_profile_set(&u->ucm, &u->core->default_channel_map);
+        pa_alsa_profile_set_dump(u->profile_set);
+        err = 0;
+    }
+    else
+    {
+        pa_log("No UCM verb is valid for %s", card_name);
+        err = -1;
+    }
+    snd_use_case_free_list(verb_list, num_verbs);
+ucm_verb_fail:
+    if(err < 0)
+    {
+        snd_use_case_mgr_close(u->ucm.ucm_mgr);
+        u->ucm.ucm_mgr = NULL;
+    }
+ucm_mgr_fail:
+    free(card_name);
+name_fail:
+    return err;
+}
+
+static pa_hook_result_t sink_input_put_hook_callback(
+        pa_core *c, pa_sink_input *sink_input, struct userdata *u) {
+    const char *role;
+    const char *mapping_name;
+    pa_sink *sink = sink_input->sink;
+
+    pa_assert(sink);
+
+    role = pa_proplist_gets(sink_input->proplist, PA_PROP_MEDIA_ROLE);
+    mapping_name = pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_PROFILE_NAME);
+
+    /* new sink input linked to sink of this card */
+    if (role && sink->card == u->card) {
+        ucm_roled_stream_begin(&u->ucm, role, mapping_name, 1);
+    }
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_output_put_hook_callback(
+        pa_core *c, pa_source_output *source_output, struct userdata *u) {
+    const char *role;
+    const char *mapping_name;
+    pa_source *source = source_output->source;
+
+    pa_assert(source);
+
+    role = pa_proplist_gets(source_output->proplist, PA_PROP_MEDIA_ROLE);
+    mapping_name = pa_proplist_gets(source->proplist, PA_PROP_DEVICE_PROFILE_NAME);
+
+    /* new source output linked to source of this card */
+    if (role && source->card == u->card) {
+        ucm_roled_stream_begin(&u->ucm, role, mapping_name, 0);
+    }
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t sink_input_unlink_hook_callback(
+        pa_core *c, pa_sink_input *sink_input, struct userdata *u) {
+    const char *role;
+    const char *mapping_name;
+    pa_sink *sink = sink_input->sink;
+
+    pa_assert(sink);
+
+    role = pa_proplist_gets(sink_input->proplist, PA_PROP_MEDIA_ROLE);
+    mapping_name = pa_proplist_gets(sink->proplist, PA_PROP_DEVICE_PROFILE_NAME);
+
+    /* new sink input unlinked from sink of this card */
+    if (role && sink->card == u->card) {
+        ucm_roled_stream_end(&u->ucm, role, mapping_name, 1);
+    }
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_output_unlink_hook_callback(
+        pa_core *c, pa_source_output *source_output, struct userdata *u) {
+    const char *role;
+    const char *mapping_name;
+    pa_source *source = source_output->source;
+
+    pa_assert(source);
+
+    role = pa_proplist_gets(source_output->proplist, PA_PROP_MEDIA_ROLE);
+    mapping_name = pa_proplist_gets(source->proplist, PA_PROP_DEVICE_PROFILE_NAME);
+
+    /* new source output unlinked from source of this card */
+    if (role && source->card == u->card) {
+        ucm_roled_stream_end(&u->ucm, role, mapping_name, 0);
+    }
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t sink_input_move_start_hook_callback(
+        pa_core *c, pa_sink_input *sink_input, struct userdata *u) {
+    /* same as sink input unlink */
+    return sink_input_unlink_hook_callback (c, sink_input, u);
+}
+
+static pa_hook_result_t source_output_move_start_hook_callback(
+        pa_core *c, pa_source_output *source_output, struct userdata *u) {
+    /* same as source output unlink */
+    return source_output_unlink_hook_callback (c, source_output, u);
+}
+
+static pa_hook_result_t sink_input_move_finish_hook_callback(
+        pa_core *c, pa_sink_input *sink_input, struct userdata *u) {
+    /* same as sink input put */
+    return sink_input_put_hook_callback (c, sink_input, u);
+}
+
+static pa_hook_result_t source_output_move_finish_hook_callback(
+        pa_core *c, pa_source_output *source_output, struct userdata *u) {
+    /* same as source output put */
+    return source_output_put_hook_callback (c, source_output, u);
+}
+
 int pa__init(pa_module *m) {
     pa_card_new_data data;
     pa_modargs *ma;
@@ -439,6 +676,8 @@ int pa__init(pa_module *m) {
     u->device_id = pa_xstrdup(pa_modargs_get_value(ma, "device_id", DEFAULT_DEVICE_ID));
     u->modargs = ma;
 
+    u->ucm.core = m->core;
+
     if ((u->alsa_card_index = snd_card_get_index(u->device_id)) < 0) {
         pa_log("Card '%s' doesn't exist: %s", u->device_id, pa_alsa_strerror(u->alsa_card_index));
         goto fail;
@@ -456,17 +695,56 @@ int pa__init(pa_module *m) {
         }
     }
 
+    pa_modargs_get_value_boolean(ma, "use_ucm", &u->use_ucm);
+    if (u->use_ucm && !card_query_ucm_profiles(u, u->alsa_card_index)) {
+        pa_log_info("Found UCM profiles");
+
+        /* hook start of sink input/source output to enable modifiers */
+        /* A little bit later than module-role-cork */
+        u->sink_input_put_hook_slot = pa_hook_connect(
+                &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], PA_HOOK_LATE+10,
+                (pa_hook_cb_t) sink_input_put_hook_callback, u);
+        u->source_output_put_hook_slot = pa_hook_connect(
+                &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], PA_HOOK_LATE+10,
+                (pa_hook_cb_t) source_output_put_hook_callback, u);
+
+        /* hook end of sink input/source output to disable modifiers */
+        /* A little bit later than module-role-cork */
+        u->sink_input_unlink_hook_slot = pa_hook_connect(
+                &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK],
+                PA_HOOK_LATE+10, (pa_hook_cb_t) sink_input_unlink_hook_callback, u);
+        u->source_output_unlink_hook_slot = pa_hook_connect(
+                &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK],
+                PA_HOOK_LATE+10, (pa_hook_cb_t) source_output_unlink_hook_callback, u);
+
+        /* hook move start of sink input/source output to disable modifiers */
+        /* A little bit later than module-role-cork */
+        u->sink_input_move_start_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_START],
+                PA_HOOK_LATE+10, (pa_hook_cb_t) sink_input_move_start_hook_callback, u);
+        u->source_output_move_start_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_START],
+                PA_HOOK_LATE+10, (pa_hook_cb_t) source_output_move_start_hook_callback, u);
+
+        /* hook move finish of sink input/source output to enable modifiers */
+        /* A little bit later than module-role-cork */
+        u->sink_input_move_finish_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FINISH],
+                PA_HOOK_LATE+10, (pa_hook_cb_t) sink_input_move_finish_hook_callback, u);
+        u->source_output_move_finish_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_FINISH],
+                PA_HOOK_LATE+10, (pa_hook_cb_t) source_output_move_finish_hook_callback, u);
+    }
+    else {
+        u->use_ucm = FALSE;
 #ifdef HAVE_UDEV
-    fn = pa_udev_get_property(u->alsa_card_index, "PULSE_PROFILE_SET");
+        fn = pa_udev_get_property(u->alsa_card_index, "PULSE_PROFILE_SET");
 #endif
 
-    if (pa_modargs_get_value(ma, "profile_set", NULL)) {
-        pa_xfree(fn);
-        fn = pa_xstrdup(pa_modargs_get_value(ma, "profile_set", NULL));
-    }
+        if (pa_modargs_get_value(ma, "profile_set", NULL)) {
+            pa_xfree(fn);
+            fn = pa_xstrdup(pa_modargs_get_value(ma, "profile_set", NULL));
+        }
 
-    u->profile_set = pa_alsa_profile_set_new(fn, &u->core->default_channel_map);
-    pa_xfree(fn);
+        u->profile_set = pa_alsa_profile_set_new(fn, &u->core->default_channel_map);
+        pa_xfree(fn);
+    }
 
     u->profile_set->ignore_dB = ignore_dB;
 
@@ -584,6 +862,30 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         goto finish;
 
+    if (u->sink_input_put_hook_slot)
+        pa_hook_slot_free(u->sink_input_put_hook_slot);
+
+    if (u->sink_input_unlink_hook_slot)
+        pa_hook_slot_free(u->sink_input_unlink_hook_slot);
+
+    if (u->source_output_put_hook_slot)
+        pa_hook_slot_free(u->source_output_put_hook_slot);
+
+    if (u->source_output_unlink_hook_slot)
+        pa_hook_slot_free(u->source_output_unlink_hook_slot);
+
+    if (u->sink_input_move_start_hook_slot)
+        pa_hook_slot_free(u->sink_input_move_start_hook_slot);
+
+    if (u->source_output_move_start_hook_slot)
+        pa_hook_slot_free(u->source_output_move_start_hook_slot);
+
+    if (u->sink_input_move_finish_hook_slot)
+        pa_hook_slot_free(u->sink_input_move_finish_hook_slot);
+
+    if (u->source_output_move_finish_hook_slot)
+        pa_hook_slot_free(u->source_output_move_finish_hook_slot);
+
     if (u->mixer_fdl)
         pa_alsa_fdlist_free(u->mixer_fdl);
     if (u->mixer_handle)
@@ -613,6 +915,8 @@ void pa__done(pa_module*m) {
 
     if (u->profile_set)
         pa_alsa_profile_set_free(u->profile_set);
+
+    ucm_free(&u->ucm);
 
     pa_xfree(u->device_id);
     pa_xfree(u);

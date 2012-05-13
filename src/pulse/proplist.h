@@ -257,6 +257,51 @@ PA_C_DECL_BEGIN
 /** For modules: a version string for the module. e.g. "0.9.15" */
 #define PA_PROP_MODULE_VERSION                 "module.version"
 
+/** For devices: List of verbs, devices or modifiers availables */
+#define PA_PROP_UCM_NAME                       "ucm.name"
+
+/** For devices: List of supported devices per verb*/
+#define PA_PROP_UCM_DESCRIPTION                "ucm.description"
+
+/** For devices: Playback device name e.g PlaybackPCM */
+#define PA_PROP_UCM_SINK                       "ucm.sink"
+
+/** For devices: Capture device name e.g CapturePCM*/
+#define PA_PROP_UCM_SOURCE                     "ucm.source"
+
+/** For devices: Playback roles */
+#define PA_PROP_UCM_PLAYBACK_ROLES             "ucm.playback.roles"
+
+/** For devices: Playback control volume ID string. e.g PlaybackVolume */
+#define PA_PROP_UCM_PLAYBACK_VOLUME            "ucm.playback.volume"
+
+/** For devices: Playback switch e.g PlaybackSwitch */
+#define PA_PROP_UCM_PLAYBACK_SWITCH            "ucm.playback.switch"
+
+/** For devices: Playback priority */
+#define PA_PROP_UCM_PLAYBACK_PRIORITY          "ucm.playback.priority"
+
+/** For devices: Playback channels */
+#define PA_PROP_UCM_PLAYBACK_CHANNELS          "ucm.playback.channels"
+
+/** For devices: Capture roles */
+#define PA_PROP_UCM_CAPTURE_ROLES              "ucm.capture.roles"
+
+/** For devices: Capture controls volume ID string. e.g CaptureVolume */
+#define PA_PROP_UCM_CAPTURE_VOLUME             "ucm.capture.volume"
+
+/** For devices: Capture switch e.g CaptureSwitch */
+#define PA_PROP_UCM_CAPTURE_SWITCH             "ucm.capture.switch"
+
+/** For devices: Capture priority */
+#define PA_PROP_UCM_CAPTURE_PRIORITY           "ucm.capture.priority"
+
+/** For devices: Capture channels */
+#define PA_PROP_UCM_CAPTURE_CHANNELS           "ucm.capture.channels"
+
+/** For devices: Quality of Service */
+#define PA_PROP_UCM_QOS                        "ucm.qos"
+
 /** For PCM formats: the sample format used as returned by pa_sample_format_to_string() \since 1.0 */
 #define PA_PROP_FORMAT_SAMPLE_FORMAT           "format.sample_format"
 

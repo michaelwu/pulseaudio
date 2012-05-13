@@ -394,6 +394,7 @@ static void card_changed(struct userdata *u, struct udev_device *dev) {
                                 "fixed_latency_range=%s "
                                 "ignore_dB=%s "
                                 "deferred_volume=%s "
+                                "use_ucm=1 "
                                 "card_properties=\"module-udev-detect.discovered=1\"",
                                 path_get_card_id(path),
                                 n,
