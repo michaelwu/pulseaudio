@@ -27,17 +27,12 @@
 #include <asoundlib.h>
 #include <use-case.h>
 
-typedef struct pa_core pa_core;
-typedef struct pa_device_port pa_device_port;
-typedef struct pa_alsa_mapping pa_alsa_mapping;
-
 typedef struct pa_alsa_ucm_verb pa_alsa_ucm_verb;
 typedef struct pa_alsa_ucm_modifier pa_alsa_ucm_modifier;
 typedef struct pa_alsa_ucm_device pa_alsa_ucm_device;
 typedef struct pa_alsa_ucm_config pa_alsa_ucm_config;
 typedef struct pa_alsa_ucm_mapping_context pa_alsa_ucm_mapping_context;
 typedef struct pa_alsa_port_data_ucm pa_alsa_port_data_ucm;
-typedef struct pa_alsa_jack pa_alsa_jack;
 
 int  ucm_set_profile(struct pa_alsa_ucm_config *ucm, const char *new_profile, const char *old_profile);
 void ucm_free(struct pa_alsa_ucm_config *ucm);
@@ -75,6 +70,7 @@ struct pa_alsa_ucm_device {
     char **conflicting_devices;
     char **supported_devices;
     pa_alsa_jack *jack;
+    char *playback_volume;
 };
 
 struct pa_alsa_ucm_modifier {

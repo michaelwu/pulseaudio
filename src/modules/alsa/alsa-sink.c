@@ -155,6 +155,7 @@ struct userdata {
 
     /* ucm context */
     pa_alsa_ucm_mapping_context *ucm_context;
+    snd_hctl_t *hctl;
 };
 
 static void userdata_free(struct userdata *u);
@@ -1452,14 +1453,54 @@ static void mixer_volume_init(struct userdata *u) {
     }
 }
 
+static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char *element, pa_bool_t ignore_dB);
+
 static int sink_set_port_ucm_cb(pa_sink *s, pa_device_port *p) {
     struct userdata *u = s->userdata;
+    pa_alsa_ucm_mapping_context *context = u->ucm_context;
+    int ret = 0;
+    int i;
+    char *control_name = NULL;
 
     pa_assert(u);
     pa_assert(p);
     pa_assert(u->ucm_context);
 
-    return ucm_set_port(u->ucm_context, p, 1);
+    if ((ret = ucm_set_port(u->ucm_context, p, 1)))
+        return ret;
+
+    for (i = 0; i < context->ucm_devices_num; i++) {
+        pa_alsa_ucm_device *d = context->ucm_devices[i];
+        const char *dev_name = pa_proplist_gets(d->proplist, PA_PROP_UCM_NAME);
+        if (!strcmp(dev_name, p->name)) {
+            control_name = d->playback_volume;
+            break;
+        }
+    }
+
+    if (!control_name) {
+        pa_log("no volume control for %s found, bailing", p->name);
+        return ret;
+    }
+    pa_log("volume control for %s found - %s", p->name, control_name);
+
+    find_mixer(u, NULL, control_name, 0);
+
+    pa_alsa_path_select(u->mixer_path, u->mixer_handle);
+
+    mixer_volume_init(u);
+
+    if (s->set_mute)
+        s->set_mute(s);
+    if (s->flags & PA_SINK_DEFERRED_VOLUME) {
+        if (s->write_volume)
+            s->write_volume(s);
+    } else {
+        if (s->set_volume)
+            s->set_volume(s);
+    }
+
+    return ret;
 }
 
 static int sink_set_port_cb(pa_sink *s, pa_device_port *p) {
@@ -1861,12 +1902,12 @@ static void set_sink_name(pa_sink_new_data *data, pa_modargs *ma, const char *de
 }
 
 static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char *element, pa_bool_t ignore_dB) {
-    snd_hctl_t *hctl;
+    snd_hctl_t *hctl = u->hctl;
 
     if (!mapping && !element)
         return;
 
-    if (!(u->mixer_handle = pa_alsa_open_mixer_for_pcm(u->pcm_handle, &u->control_device, &hctl))) {
+    if (!u->mixer_handle && !(u->mixer_handle = pa_alsa_open_mixer_for_pcm(u->pcm_handle, &u->control_device, &hctl))) {
         pa_log_info("Failed to find a working mixer device.");
         return;
     }
@@ -2208,6 +2249,9 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
 
     if (!u->ucm_context)
         find_mixer(u, mapping, pa_modargs_get_value(ma, "control", NULL), ignore_dB);
+    else if (!(u->mixer_handle = pa_alsa_open_mixer_for_pcm(u->pcm_handle, &u->control_device, &u->hctl)))
+        pa_log("couldn't get mixer handle!");
+
 
     pa_sink_new_data_init(&data);
     data.driver = driver;

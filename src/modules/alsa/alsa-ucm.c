@@ -232,6 +232,11 @@ static int ucm_get_device_property(struct pa_alsa_ucm_device *device,
     }
     pa_assert(device->playback_channels || device->capture_channels);
 
+    value = pa_proplist_gets(device->proplist, PA_PROP_UCM_PLAYBACK_VOLUME);
+    if (value) {
+        device->playback_volume = pa_xstrdup(value);
+    }
+
     /* get priority of device */
     if (device->playback_channels) { /* sink device */
         value = pa_proplist_gets(device->proplist, PA_PROP_UCM_PLAYBACK_PRIORITY);
