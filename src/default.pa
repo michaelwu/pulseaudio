@@ -34,9 +34,7 @@
 load-module module-switch-on-port-available
 
 .nofail
-#load-module module-alsa-source device=hw:0.0
-#load-module module-alsa-sink device=hw:0.0
-load-module module-alsa-card device_id=0
+load-module module-alsa-card device_id=0 use_ucm=1
 .fail
 
 ### Load several protocols
