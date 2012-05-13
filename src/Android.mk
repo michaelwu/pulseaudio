@@ -91,7 +91,8 @@ PA_DEFINES := \
   -DPA_ALSA_PROFILE_SETS_DIR=\"/system/etc/pulse/profiles\" \
   -DPA_ALSA_PATHS_DIR=\"/system/etc/pulse/paths\" \
   -DPA_ACCESS_GROUP=\"audio\" \
-  -UNDEBUG
+  -UNDEBUG \
+  -D_POSIX_SOURCE
 
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES:= \
@@ -161,7 +162,7 @@ LOCAL_CFLAGS := -std=gnu99 $(PA_DEFINES) -DHAVE_SYS_MMAN_H
 LOCAL_C_INCLUDES += \
   external/libsndfile/src
 LOCAL_MODULE := libpulsecommon
-LOCAL_SHARED_LIBRARIES:= libsalsa libsndfile
+LOCAL_SHARED_LIBRARIES:= libasound libsndfile
 LOCAL_MODULE_TAGS := optional eng
 LOCAL_PRELINK_MODULE := false
 include $(BUILD_SHARED_LIBRARY)
@@ -268,16 +269,17 @@ include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES:= \
+  modules/alsa/alsa-ucm.c \
   modules/alsa/alsa-util.c \
   modules/alsa/alsa-mixer.c \
   modules/alsa/alsa-sink.c \
   modules/alsa/alsa-source.c \
   modules/reserve-wrap.c
 
-LOCAL_C_INCLUDES += external/salsa-lib/src
+LOCAL_C_INCLUDES += external/alsa-lib/include
 LOCAL_CFLAGS := -std=gnu99 $(PA_DEFINES) -D__INCLUDED_FROM_PULSE_AUDIO -DHAVE_SYS_MMAN_H
 LOCAL_MODULE := libalsa-util
-LOCAL_SHARED_LIBRARIES:= libsalsa libpulsecore libpulsecommon libpulse
+LOCAL_SHARED_LIBRARIES:= libasound libpulsecore libpulsecommon libpulse
 LOCAL_MODULE_TAGS := optional eng
 LOCAL_PRELINK_MODULE := false
 include $(BUILD_SHARED_LIBRARY)
@@ -317,7 +319,7 @@ define PA_MODULE_TEMPLATE
   $$(LOCAL_PATH)/$(2)/$$(LOCAL_MODULE).c: $$(LOCAL_PATH)/$(2)/$$(LOCAL_MODULE)-symdef.h
   $$(LOCAL_PATH)/$(2)/$$(LOCAL_MODULE)-symdef.h: $$(LOCAL_PATH)/modules/module-defs.h.m4
 	m4 -Dfname="$$@" $$< > $$@
-  LOCAL_C_INCLUDES += external/salsa-lib/src
+  LOCAL_C_INCLUDES += external/alsa-lib/include
   LOCAL_SRC_FILES := $(2)/$$(LOCAL_MODULE).c
   LOCAL_CFLAGS := -std=gnu99 $$(PA_DEFINES) -D__INCLUDED_FROM_PULSE_AUDIO -DHAVE_SYS_MMAN_H
   LOCAL_SHARED_LIBRARIES := libpulsecore libpulsecommon libpulse $(3)
@@ -360,14 +362,14 @@ PA_ALSA_MODULES := \
   module-alsa-card
 
 $(foreach pamod,$(PA_MODULES),$(eval $(call PA_MODULE_TEMPLATE,$(pamod),modules,)))
-$(foreach pamod,$(PA_ALSA_MODULES),$(eval $(call PA_MODULE_TEMPLATE,$(pamod),modules/alsa,libalsa-util libsalsa)))
+$(foreach pamod,$(PA_ALSA_MODULES),$(eval $(call PA_MODULE_TEMPLATE,$(pamod),modules/alsa,libalsa-util libasound)))
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := module-native-protocol-unix
 $(LOCAL_PATH)/modules/module-protocol-stub.c: $(LOCAL_PATH)/modules/$(LOCAL_MODULE)-symdef.h
 $(LOCAL_PATH)/modules/$(LOCAL_MODULE)-symdef.h: $(LOCAL_PATH)/modules/module-defs.h.m4
 	m4 -Dfname="$@" $< > $@
-LOCAL_C_INCLUDES += external/salsa-lib/src
+LOCAL_C_INCLUDES += external/alsa-lib/include
 LOCAL_SRC_FILES := modules/module-protocol-stub.c
 LOCAL_CFLAGS := -std=gnu99 $(PA_DEFINES) -D__INCLUDED_FROM_PULSE_AUDIO -DHAVE_SYS_MMAN_H -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_NATIVE
 LOCAL_SHARED_LIBRARIES := libpulsecore libpulsecommon libpulse
@@ -381,7 +383,7 @@ LOCAL_MODULE := module-cli-protocol-unix
 $(LOCAL_PATH)/modules/module-protocol-stub.c: $(LOCAL_PATH)/modules/$(LOCAL_MODULE)-symdef.h
 $(LOCAL_PATH)/modules/$(LOCAL_MODULE)-symdef.h: $(LOCAL_PATH)/modules/module-defs.h.m4
 	m4 -Dfname="$@" $< > $@
-LOCAL_C_INCLUDES += external/salsa-lib/src
+LOCAL_C_INCLUDES += external/alsa-lib/include
 LOCAL_SRC_FILES := modules/module-protocol-stub.c
 LOCAL_CFLAGS := -std=gnu99 $(PA_DEFINES) -D__INCLUDED_FROM_PULSE_AUDIO -DHAVE_SYS_MMAN_H -DUSE_UNIX_SOCKETS -DUSE_PROTOCOL_CLI
 LOCAL_SHARED_LIBRARIES := libpulsecore libpulsecommon libpulse
