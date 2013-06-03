@@ -2142,3 +2142,627 @@ coverage:
 endif
 
 .PHONY: massif update-all update-ffmpeg update-map-file coverage
+
+ANDROID_CFLAGS = -std=c99 -I$(top_srcdir) -DHAVE_CONFIG_H
+
+Android.mk: Makefile.am $(BUILT_SOURCES)
+	androgenizer -:PROJECT pulseaudio \
+		-:SHARED libcli \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(libcli_la_SOURCES) $(nodist_libcli_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(libcli_la_CFLAGS) \
+		-:LDFLAGS $(libcli_la_LDFLAGS) $(libcli_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED libprotocol-cli \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(libprotocol_cli_la_SOURCES) $(nodist_libprotocol_cli_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(libprotocol_cli_la_CFLAGS) \
+		-:LDFLAGS $(libprotocol_cli_la_LDFLAGS) $(libprotocol_cli_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED libprotocol-simple \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(libprotocol_simple_la_SOURCES) $(nodist_libprotocol_simple_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(libprotocol_simple_la_CFLAGS) \
+		-:LDFLAGS $(libprotocol_simple_la_LDFLAGS) $(libprotocol_simple_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED libprotocol-http \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(libprotocol_http_la_SOURCES) $(nodist_libprotocol_http_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(libprotocol_http_la_CFLAGS) \
+		-:LDFLAGS $(libprotocol_http_la_LDFLAGS) $(libprotocol_http_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED libprotocol-native \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(libprotocol_native_la_SOURCES) $(nodist_libprotocol_native_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(libprotocol_native_la_CFLAGS) \
+		-:LDFLAGS $(libprotocol_native_la_LDFLAGS) $(libprotocol_native_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED librtp \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(librtp_la_SOURCES) $(nodist_librtp_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(librtp_la_CFLAGS) \
+		-:LDFLAGS $(librtp_la_LDFLAGS) $(librtp_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED libalsa-util \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(libalsa_util_la_SOURCES) $(nodist_libalsa_util_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(libalsa_util_la_CFLAGS) \
+		-:LDFLAGS $(libalsa_util_la_LDFLAGS) $(libalsa_util_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED libpulsecore-@PA_MAJORMINOR@ \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(libpulsecore_@PA_MAJORMINOR@_la_SOURCES) $(nodist_libpulsecore_@PA_MAJORMINOR@_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(libpulsecore_@PA_MAJORMINOR@_la_CFLAGS) \
+		-:LDFLAGS $(libpulsecore_@PA_MAJORMINOR@_la_LDFLAGS) $(libpulsecore_@PA_MAJORMINOR@_la_LIBADD) \
+		-:LIBFILTER_STATIC pulsecore-foreign \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+		\
+		-:SHARED libpulsecommon-@PA_MAJORMINOR@ \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(libpulsecommon_@PA_MAJORMINOR@_la_SOURCES) $(nodist_libpulsecommon_@PA_MAJORMINOR@_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS) \
+		-:LDFLAGS $(libpulsecommon_@PA_MAJORMINOR@_la_LDFLAGS) $(libpulsecommon_@PA_MAJORMINOR@_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+		\
+		-:STATIC libpulsecore-foreign \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(libpulsecore_foreign_la_SOURCES) $(nodist_libpulsecore_foreign_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(libpulsecore_foreign_la_CFLAGS) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+		\
+		-:SHARED libpulse \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(libpulse_la_SOURCES) $(nodist_libpulse_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(libpulse_la_CFLAGS) \
+		-:LDFLAGS $(libpulse_la_LDFLAGS) $(libpulse_la_LIBADD) \
+		-:HEADER_TARGET pulse \
+		-:HEADERS $(pulseinclude_HEADERS) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+		\
+		-:EXECUTABLE pulseaudio \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(pulseaudio_SOURCES) $(nodist_libpulseaudio_SOURCES) \
+			  daemon/pulseaudio-symdef.c \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(pulseaudio_CFLAGS) \
+		-:LDFLAGS $(pulseaudio_LDFLAGS) $(pulseaudio_LDADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_REQUIRED_MODULES:='$(foreach m,$(modlibexec_LTLIBRARIES),$(subst .la,,$(m))) $(bin_PROGRAMS) $(pulseconf_DATA) start-pulseaudio-android' \
+		\
+		-:EXECUTABLE pacat \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(pacat_SOURCES) $(nodist_libpacat_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(pacat_CFLAGS) \
+		-:LDFLAGS $(pacat_LDFLAGS) $(pacat_LDADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+		\
+		-:EXECUTABLE pactl \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(pactl_SOURCES) $(nodist_libpactl_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(pactl_CFLAGS) \
+		-:LDFLAGS $(pactl_LDFLAGS) $(pactl_LDADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+		\
+		-:EXECUTABLE pacmd \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(pacmd_SOURCES) $(nodist_libpacmd_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(pacmd_CFLAGS) \
+		-:LDFLAGS $(pacmd_LDFLAGS) $(pacmd_LDADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+		\
+		-:EXECUTABLE pasuspender \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(pasuspender_SOURCES) $(nodist_libpasuspender_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(pasuspender_CFLAGS) \
+		-:LDFLAGS $(pasuspender_LDFLAGS) $(pasuspender_LDADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+		\
+		-:SHARED module-cli \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_cli_la_SOURCES) $(nodist_module_cli_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_cli_la_CFLAGS) \
+		-:LDFLAGS $(module_cli_la_LDFLAGS) $(module_cli_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-cli-protocol-tcp \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_cli_protocol_tcp_la_SOURCES) $(nodist_module_cli_protocol_tcp_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_cli_protocol_tcp_la_CFLAGS) \
+		-:LDFLAGS $(module_cli_protocol_tcp_la_LDFLAGS) $(module_cli_protocol_tcp_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-simple-protocol-tcp \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_simple_protocol_tcp_la_SOURCES) $(nodist_module_simple_protocol_tcp_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_simple_protocol_tcp_la_CFLAGS) \
+		-:LDFLAGS $(module_simple_protocol_tcp_la_LDFLAGS) $(module_simple_protocol_tcp_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-null-sink \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_null_sink_la_SOURCES) $(nodist_module_null_sink_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_null_sink_la_CFLAGS) \
+		-:LDFLAGS $(module_null_sink_la_LDFLAGS) $(module_null_sink_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-null-source \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_null_source_la_SOURCES) $(nodist_module_null_source_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_null_source_la_CFLAGS) \
+		-:LDFLAGS $(module_null_source_la_LDFLAGS) $(module_null_source_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-sine-source \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_sine_source_la_SOURCES) $(nodist_module_sine_source_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_sine_source_la_CFLAGS) \
+		-:LDFLAGS $(module_sine_source_la_LDFLAGS) $(module_sine_source_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-detect \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_detect_la_SOURCES) $(nodist_module_detect_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_detect_la_CFLAGS) \
+		-:LDFLAGS $(module_detect_la_LDFLAGS) $(module_detect_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-volume-restore \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_volume_restore_la_SOURCES) $(nodist_module_volume_restore_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_volume_restore_la_CFLAGS) \
+		-:LDFLAGS $(module_volume_restore_la_LDFLAGS) $(module_volume_restore_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-device-manager \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_device_manager_la_SOURCES) $(nodist_module_device_manager_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_device_manager_la_CFLAGS) \
+		-:LDFLAGS $(module_device_manager_la_LDFLAGS) $(module_device_manager_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-device-restore \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_device_restore_la_SOURCES) $(nodist_module_device_restore_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_device_restore_la_CFLAGS) \
+		-:LDFLAGS $(module_device_restore_la_LDFLAGS) $(module_device_restore_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-stream-restore \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_stream_restore_la_SOURCES) $(nodist_module_stream_restore_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_stream_restore_la_CFLAGS) \
+		-:LDFLAGS $(module_stream_restore_la_LDFLAGS) $(module_stream_restore_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-card-restore \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_card_restore_la_SOURCES) $(nodist_module_card_restore_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_card_restore_la_CFLAGS) \
+		-:LDFLAGS $(module_card_restore_la_LDFLAGS) $(module_card_restore_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-default-device-restore \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_default_device_restore_la_SOURCES) $(nodist_module_default_device_restore_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_default_device_restore_la_CFLAGS) \
+		-:LDFLAGS $(module_default_device_restore_la_LDFLAGS) $(module_default_device_restore_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-always-sink \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_always_sink_la_SOURCES) $(nodist_module_always_sink_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_always_sink_la_CFLAGS) \
+		-:LDFLAGS $(module_always_sink_la_LDFLAGS) $(module_always_sink_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-rescue-streams \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_rescue_streams_la_SOURCES) $(nodist_module_rescue_streams_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_rescue_streams_la_CFLAGS) \
+		-:LDFLAGS $(module_rescue_streams_la_LDFLAGS) $(module_rescue_streams_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-intended-roles \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_intended_roles_la_SOURCES) $(nodist_module_intended_roles_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_intended_roles_la_CFLAGS) \
+		-:LDFLAGS $(module_intended_roles_la_LDFLAGS) $(module_intended_roles_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-suspend-on-idle \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_suspend_on_idle_la_SOURCES) $(nodist_module_suspend_on_idle_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_suspend_on_idle_la_CFLAGS) \
+		-:LDFLAGS $(module_suspend_on_idle_la_LDFLAGS) $(module_suspend_on_idle_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-echo-cancel \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_echo_cancel_la_SOURCES) $(nodist_module_echo_cancel_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_echo_cancel_la_CFLAGS) \
+		-:LDFLAGS $(module_echo_cancel_la_LDFLAGS) $(module_echo_cancel_la_LIBADD) \
+			  -lspeex \
+		-:LIBFILTER_STATIC speex \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-http-protocol-tcp \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_http_protocol_tcp_la_SOURCES) $(nodist_module_http_protocol_tcp_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_http_protocol_tcp_la_CFLAGS) \
+		-:LDFLAGS $(module_http_protocol_tcp_la_LDFLAGS) $(module_http_protocol_tcp_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-sine \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_sine_la_SOURCES) $(nodist_module_sine_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_sine_la_CFLAGS) \
+		-:LDFLAGS $(module_sine_la_LDFLAGS) $(module_sine_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-native-protocol-tcp \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_native_protocol_tcp_la_SOURCES) $(nodist_module_native_protocol_tcp_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_native_protocol_tcp_la_CFLAGS) \
+		-:LDFLAGS $(module_native_protocol_tcp_la_LDFLAGS) $(module_native_protocol_tcp_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-native-protocol-fd \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_native_protocol_fd_la_SOURCES) $(nodist_module_native_protocol_fd_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_native_protocol_fd_la_CFLAGS) \
+		-:LDFLAGS $(module_native_protocol_fd_la_LDFLAGS) $(module_native_protocol_fd_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-combine \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_combine_la_SOURCES) $(nodist_module_combine_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_combine_la_CFLAGS) \
+		-:LDFLAGS $(module_combine_la_LDFLAGS) $(module_combine_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-combine-sink \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_combine_sink_la_SOURCES) $(nodist_module_combine_sink_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_combine_sink_la_CFLAGS) \
+		-:LDFLAGS $(module_combine_sink_la_LDFLAGS) $(module_combine_sink_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-remap-sink \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_remap_sink_la_SOURCES) $(nodist_module_remap_sink_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_remap_sink_la_CFLAGS) \
+		-:LDFLAGS $(module_remap_sink_la_LDFLAGS) $(module_remap_sink_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-ladspa-sink \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_ladspa_sink_la_SOURCES) $(nodist_module_ladspa_sink_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_ladspa_sink_la_CFLAGS) \
+		-:LDFLAGS $(module_ladspa_sink_la_LDFLAGS) $(module_ladspa_sink_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-tunnel-sink \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_tunnel_sink_la_SOURCES) $(nodist_module_tunnel_sink_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_tunnel_sink_la_CFLAGS) \
+		-:LDFLAGS $(module_tunnel_sink_la_LDFLAGS) $(module_tunnel_sink_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-tunnel-source \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_tunnel_source_la_SOURCES) $(nodist_module_tunnel_source_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_tunnel_source_la_CFLAGS) \
+		-:LDFLAGS $(module_tunnel_source_la_LDFLAGS) $(module_tunnel_source_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-position-event-sounds \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_position_event_sounds_la_SOURCES) $(nodist_module_position_event_sounds_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_position_event_sounds_la_CFLAGS) \
+		-:LDFLAGS $(module_position_event_sounds_la_LDFLAGS) $(module_position_event_sounds_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-augment-properties \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_augment_properties_la_SOURCES) $(nodist_module_augment_properties_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_augment_properties_la_CFLAGS) \
+		-:LDFLAGS $(module_augment_properties_la_LDFLAGS) $(module_augment_properties_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-role-cork \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_role_cork_la_SOURCES) $(nodist_module_role_cork_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_role_cork_la_CFLAGS) \
+		-:LDFLAGS $(module_role_cork_la_LDFLAGS) $(module_role_cork_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-loopback \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_loopback_la_SOURCES) $(nodist_module_loopback_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_loopback_la_CFLAGS) \
+		-:LDFLAGS $(module_loopback_la_LDFLAGS) $(module_loopback_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-switch-on-connect \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_switch_on_connect_la_SOURCES) $(nodist_module_switch_on_connect_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_switch_on_connect_la_CFLAGS) \
+		-:LDFLAGS $(module_switch_on_connect_la_LDFLAGS) $(module_switch_on_connect_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-filter-apply \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_filter_apply_la_SOURCES) $(nodist_module_filter_apply_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_filter_apply_la_CFLAGS) \
+		-:LDFLAGS $(module_filter_apply_la_LDFLAGS) $(module_filter_apply_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-filter-heuristics \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_filter_heuristics_la_SOURCES) $(nodist_module_filter_heuristics_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_filter_heuristics_la_CFLAGS) \
+		-:LDFLAGS $(module_filter_heuristics_la_LDFLAGS) $(module_filter_heuristics_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-rtp-send \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_rtp_send_la_SOURCES) $(nodist_module_rtp_send_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_rtp_send_la_CFLAGS) \
+		-:LDFLAGS $(module_rtp_send_la_LDFLAGS) $(module_rtp_send_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-rtp-recv \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_rtp_recv_la_SOURCES) $(nodist_module_rtp_recv_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_rtp_recv_la_CFLAGS) \
+		-:LDFLAGS $(module_rtp_recv_la_LDFLAGS) $(module_rtp_recv_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-cli-protocol-unix \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_cli_protocol_unix_la_SOURCES) $(nodist_module_cli_protocol_unix_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_cli_protocol_unix_la_CFLAGS) \
+		-:LDFLAGS $(module_cli_protocol_unix_la_LDFLAGS) $(module_cli_protocol_unix_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-simple-protocol-unix \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_simple_protocol_unix_la_SOURCES) $(nodist_module_simple_protocol_unix_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_simple_protocol_unix_la_CFLAGS) \
+		-:LDFLAGS $(module_simple_protocol_unix_la_LDFLAGS) $(module_simple_protocol_unix_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-http-protocol-unix \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_http_protocol_unix_la_SOURCES) $(nodist_module_http_protocol_unix_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_http_protocol_unix_la_CFLAGS) \
+		-:LDFLAGS $(module_http_protocol_unix_la_LDFLAGS) $(module_http_protocol_unix_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-native-protocol-unix \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_native_protocol_unix_la_SOURCES) $(nodist_module_native_protocol_unix_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_native_protocol_unix_la_CFLAGS) \
+		-:LDFLAGS $(module_native_protocol_unix_la_LDFLAGS) $(module_native_protocol_unix_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-match \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_match_la_SOURCES) $(nodist_module_match_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_match_la_CFLAGS) \
+		-:LDFLAGS $(module_match_la_LDFLAGS) $(module_match_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-alsa-sink \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_alsa_sink_la_SOURCES) $(nodist_module_alsa_sink_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_alsa_sink_la_CFLAGS) \
+		-:LDFLAGS $(module_alsa_sink_la_LDFLAGS) $(module_alsa_sink_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-alsa-source \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_alsa_source_la_SOURCES) $(nodist_module_alsa_source_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_alsa_source_la_CFLAGS) \
+		-:LDFLAGS $(module_alsa_source_la_LDFLAGS) $(module_alsa_source_la_LIBADD) \
+			  -Wl,-rpath,$(modlibexecdir) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-alsa-card \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_alsa_card_la_SOURCES) $(nodist_module_alsa_card_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_alsa_card_la_CFLAGS) \
+		-:LDFLAGS $(module_alsa_card_la_LDFLAGS) $(module_alsa_card_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+		\
+		-:SHARED module-mmkbd-evdev \
+		-:TAGS eng debug \
+		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \
+		-:SOURCES $(module_mmkbd_evdev_la_SOURCES) $(nodist_module_mmkbd_evdev_la_SOURCES) \
+		-:CFLAGS $(DEFS) $(ANDROID_CFLAGS) $(module_mmkbd_evdev_la_CFLAGS) \
+		-:LDFLAGS $(module_mmkbd_evdev_la_LDFLAGS) $(module_mmkbd_evdev_la_LIBADD) \
+		-:PASSTHROUGH LOCAL_ARM_MODE:=arm \
+			      LOCAL_MODULE_PATH:=$$\(PRODUCT_OUT\)$(modlibexecdir) \
+	> $@
+#	echo '' 							>> $@
+#	echo 'include $$(CLEAR_VARS)' 	       				>> $@
+#	echo 'LOCAL_MODULE := default.pa'       			>> $@
+#	echo 'LOCAL_SRC_FILES := default.pa'				>> $@
+#	echo 'LOCAL_MODULE_CLASS := ETC'				>> $@
+#	echo 'LOCAL_MODULE_TAGS := optional'				>> $@
+#	echo 'LOCAL_MODULE_PATH := $$(PRODUCT_OUT)$(sysconfdir)/pulse' 	>> $@
+#	echo 'include $$(BUILD_PREBUILT)'				>> $@
+#	echo '' 							>> $@
+#	echo 'include $$(CLEAR_VARS)' 	       				>> $@
+#	echo 'LOCAL_MODULE := system.pa'       				>> $@
+#	echo 'LOCAL_SRC_FILES := system.pa'				>> $@
+#	echo 'LOCAL_MODULE_CLASS := ETC'				>> $@
+#	echo 'LOCAL_MODULE_TAGS := optional'				>> $@
+#	echo 'LOCAL_MODULE_PATH := $$(PRODUCT_OUT)$(sysconfdir)/pulse' 	>> $@
+#	echo 'intermediates := $$(local-intermediates-dir)'		>> $@
+#	echo 'GEN := $$(intermediates)/system.pa' 			>> $@
+#	echo '$$(GEN): PRIVATE_CUSTOM_TOOL = sed -e "s:module-native-protocol-unix.*:module-native-protocol-unix auth-anonymous=yes:" $$< > $$@' >> $@
+#	echo 'LOCAL_GENERATED_SOURCES += $$(GEN)'     			>> $@
+#	echo 'include $$(BUILD_PREBUILT)'				>> $@
+#	echo '$$(GEN):'							>> $@
+#	echo '	$$(transform-generated-source)'				>> $@
+#	echo '' 							>> $@
+#	echo 'include $$(CLEAR_VARS)' 	       				>> $@
+#	echo 'LOCAL_MODULE := daemon.conf'       			>> $@
+#	echo 'LOCAL_SRC_FILES := daemon.conf'				>> $@
+#	echo 'LOCAL_MODULE_CLASS := ETC'				>> $@
+#	echo 'LOCAL_MODULE_TAGS := optional'				>> $@
+#	echo 'LOCAL_MODULE_PATH := $$(PRODUCT_OUT)$(sysconfdir)/pulse' 	>> $@
+#	echo 'include $$(BUILD_PREBUILT)'				>> $@
+#	echo '' 							>> $@
+#	echo 'include $$(CLEAR_VARS)' 	       				>> $@
+#	echo 'LOCAL_MODULE := client.conf'       			>> $@
+#	echo 'LOCAL_SRC_FILES := client.conf'				>> $@
+#	echo 'LOCAL_MODULE_CLASS := ETC'				>> $@
+#	echo 'LOCAL_MODULE_TAGS := optional'				>> $@
+#	echo 'LOCAL_MODULE_PATH := $$(PRODUCT_OUT)$(sysconfdir)/pulse' 	>> $@
+#	echo 'include $$(BUILD_PREBUILT)'				>> $@
+#	echo '' 							>> $@
+#	echo 'include $$(CLEAR_VARS)' 	       				>> $@
+#	echo 'LOCAL_MODULE := start-pulseaudio-android'       		>> $@
+#	echo 'LOCAL_SRC_FILES := daemon/start-pulseaudio-android'	>> $@
+#	echo 'LOCAL_MODULE_CLASS := EXECUTABLES'       			>> $@
+#	echo 'LOCAL_MODULE_TAGS := optional'				>> $@
+#	echo 'include $$(BUILD_PREBUILT)'				>> $@
+#
+>>>>>>> build: Add an Android-friendly build system
