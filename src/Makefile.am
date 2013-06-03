@@ -2146,7 +2146,7 @@ endif
 ANDROID_CFLAGS = -std=c99 -I$(top_srcdir) -DHAVE_CONFIG_H
 
 Android.mk: Makefile.am $(BUILT_SOURCES)
-	androgenizer -:PROJECT pulseaudio \
+	$(ANDROGENIZER) -:PROJECT pulseaudio \
 		-:SHARED libcli \
 		-:TAGS eng debug \
 		-:REL_TOP $(top_srcdir) -:ABS_TOP $(abs_top_srcdir) \

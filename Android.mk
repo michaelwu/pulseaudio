@@ -9,13 +9,26 @@ PA_BUILT_SOURCES := src/Android.mk
 
 PA_BUILT_SOURCES := $(patsubst %, $(abspath $(pulseaudio_TOP))/%, $(PA_BUILT_SOURCES))
 
-CONFIGURE_CFLAGS += -I$(PULSEAUDIO_TOP)/libtool/libltdl
+CONFIGURE_CFLAGS += -I$(pulseaudio_TOP)/libtool/libltdl -Iexternal/fake-ltdl/
 
 SPEEX_CFLAGS := -Iexternal/speex/include
 SPEEX_LIBS := -lspeexresampler
+JSON_CFLAGS := -Iexternal/json-c
+JSON_LIBS := -ljson
+SNDFILE_CFLAGS := -Iexternal/libsndfile/src
+SNDFILE_LIBS := -lsndfile
+ASOUNDLIB_CFLAGS := -Iexternal/alsa-lib/include
+ASOUNDLIB_LIBS := -lasound
+
+#$(LOCAL_PATH)/configure: $(LOCAL_PATH)/configure.ac
+#	$(LOCAL_PATH)/autogen.sh --help
+
+CONFIGURE:=configure
+ANDROGENIZER:=$(HOST_OUT_EXECUTABLES)/androgenizer
+
 
 .PHONY: pulseaudio-configure pulseaudio-configure-real
-pulseaudio-configure-real:
+pulseaudio-configure-real: $(LOCAL_PATH)/configure
 	echo $(PA_BUILT_SOURCES)
 	cd $(pulseaudio_TOP) ; \
 	CC="$(CONFIGURE_CC)" \
@@ -31,6 +44,9 @@ pulseaudio-configure-real:
 	PKG_CONFIG_LIBDIR="$(CONFIGURE_PKG_CONFIG_LIBDIR)" \
 	PKG_CONFIG_TOP_BUILD_DIR="/" \
 	LIBSPEEX_CFLAGS="$(SPEEX_CFLAGS)" LIBSPEEX_LIBS="$(SPEEX_LIBS)" \
+	LIBJSON_CFLAGS="$(JSON_CFLAGS)" LIBJSON_LIBS="$(JSON_LIBS)" \
+	LIBSNDFILE_CFLAGS="$(SNDFILE_CFLAGS)" LIBSNDFILE_LIBS="$(SNDFILE_LIBS)" \
+	ASOUNDLIB_CFLAGS="$(ASOUNDLIB_CFLAGS)" ASOUNDLIB_LIBS="$(ASOUNDLIB_LIBS)" \
 	ac_cv_header_sys_un_h=yes \
 	$(abspath $(pulseaudio_TOP))/$(CONFIGURE) --host=$(CONFIGURE_HOST) \
 	--prefix=/system \
@@ -79,7 +95,7 @@ pulseaudio-configure-real:
 	&& \
 	for file in $(PA_BUILT_SOURCES); do \
 		rm -f $$file && \
-		make -C $$(dirname $$file) $$(basename $$file) ; \
+		make ANDROGENIZER="$(abspath $(ANDROGENIZER))" -C $$(dirname $$file) $$(basename $$file) ; \
 	done
 
 pulseaudio-configure: pulseaudio-configure-real
